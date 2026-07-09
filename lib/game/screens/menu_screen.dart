@@ -283,6 +283,12 @@ class _MenuScreenState extends State<MenuScreen> {
               onTap: widget.settings.toggleFilledBlocks,
               value: widget.settings.filledBlocks,
             ),
+            const SizedBox(height: 8),
+            _buildSettingToggle(
+              label: widget.settings.soundEnabled ? 'SOUND ON' : 'SOUND OFF',
+              onTap: widget.settings.toggleSound,
+              value: widget.settings.soundEnabled,
+            ),
           ],
         ),
       ),

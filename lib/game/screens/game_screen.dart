@@ -47,6 +47,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   Future<void> _initializeGame() async {
     try {
+      await AudioService.instance.init();
+      AudioService.instance.setEnabled(widget.settings.soundEnabled);
       _engine.init();
       _engine.startGame();
       _previousTime = Duration.zero;

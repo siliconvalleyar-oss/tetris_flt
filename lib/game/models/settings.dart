@@ -4,9 +4,11 @@ import 'package:flutter/material.dart';
 class GameSettings extends ChangeNotifier {
   bool _darkMode = true;
   bool _filledBlocks = true;
+  bool _soundEnabled = false;
 
   bool get darkMode => _darkMode;
   bool get filledBlocks => _filledBlocks;
+  bool get soundEnabled => _soundEnabled;
 
   void toggleDarkMode() {
     _darkMode = !_darkMode;
@@ -15,6 +17,11 @@ class GameSettings extends ChangeNotifier {
 
   void toggleFilledBlocks() {
     _filledBlocks = !_filledBlocks;
+    notifyListeners();
+  }
+
+  void toggleSound() {
+    _soundEnabled = !_soundEnabled;
     notifyListeners();
   }
 
