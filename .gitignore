@@ -1,0 +1,17 @@
+# Flutter
+.dart_tool/
+build/
+*.iml
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project
+*.log
+*.swp
+*.swo
