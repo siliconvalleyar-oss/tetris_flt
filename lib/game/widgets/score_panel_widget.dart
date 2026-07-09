@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/settings.dart';
 
 /// Minimalist score panel with Playdate aesthetic.
 class ScorePanelWidget extends StatelessWidget {
@@ -9,6 +10,7 @@ class ScorePanelWidget extends StatelessWidget {
   final int combo;
   final String difficultyName;
   final Color difficultyColor;
+  final GameSettings settings;
 
   const ScorePanelWidget({
     super.key,
@@ -19,6 +21,7 @@ class ScorePanelWidget extends StatelessWidget {
     this.combo = 0,
     this.difficultyName = 'NORMAL',
     this.difficultyColor = const Color(0xFFB0B0B0),
+    required this.settings,
   });
 
   @override
@@ -26,22 +29,22 @@ class ScorePanelWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.black,
-        border: Border.all(color: Colors.grey[800]!, width: 1),
+        color: settings.backgroundColor,
+        border: Border.all(color: settings.borderColor, width: 1),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
         children: [
-          _LabelValue(label: 'SCORE', value: '$score'),
+          _LabelValue(label: 'SCORE', value: '$score', settings: settings),
           _divider(),
-          _LabelValue(label: 'LV', value: '$level'),
+          _LabelValue(label: 'LV', value: '$level', settings: settings),
           _divider(),
-          _LabelValue(label: 'LINES', value: '$lines'),
+          _LabelValue(label: 'LINES', value: '$lines', settings: settings),
           _divider(),
-          _LabelValue(label: 'BEST', value: '$highScore'),
+          _LabelValue(label: 'BEST', value: '$highScore', settings: settings),
           if (combo > 1) ...[
             _divider(),
-            _ComboBadge(combo: combo),
+            _ComboBadge(combo: combo, settings: settings),
           ],
         ],
       ),
@@ -49,15 +52,20 @@ class ScorePanelWidget extends StatelessWidget {
   }
 
   Widget _divider() {
-    return Container(width: 1, height: 28, color: Colors.grey[800]);
+    return Container(width: 1, height: 28, color: settings.borderColor);
   }
 }
 
 class _LabelValue extends StatelessWidget {
   final String label;
   final String value;
+  final GameSettings settings;
 
-  const _LabelValue({required this.label, required this.value});
+  const _LabelValue({
+    required this.label,
+    required this.value,
+    required this.settings,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -67,7 +75,7 @@ class _LabelValue extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            color: Colors.grey[600],
+            color: settings.lightTextColor,
             fontSize: 9,
             fontWeight: FontWeight.w500,
             letterSpacing: 2,
@@ -76,8 +84,8 @@ class _LabelValue extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: settings.foregroundColor,
             fontSize: 16,
             fontWeight: FontWeight.bold,
             fontFamily: 'monospace',
@@ -90,8 +98,9 @@ class _LabelValue extends StatelessWidget {
 
 class _ComboBadge extends StatelessWidget {
   final int combo;
+  final GameSettings settings;
 
-  const _ComboBadge({required this.combo});
+  const _ComboBadge({required this.combo, required this.settings});
 
   @override
   Widget build(BuildContext context) {
@@ -101,7 +110,7 @@ class _ComboBadge extends StatelessWidget {
         Text(
           'COMBO',
           style: TextStyle(
-            color: Colors.grey[500],
+            color: settings.lightTextColor,
             fontSize: 9,
             fontWeight: FontWeight.w500,
             letterSpacing: 2,
@@ -110,8 +119,8 @@ class _ComboBadge extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           '×$combo',
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: settings.foregroundColor,
             fontSize: 16,
             fontWeight: FontWeight.bold,
             fontFamily: 'monospace',

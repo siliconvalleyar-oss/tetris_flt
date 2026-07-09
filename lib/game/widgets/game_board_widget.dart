@@ -1,17 +1,20 @@
 import 'package:flutter/material.dart';
 import '../logic/tetris_engine.dart';
 import '../models/piece.dart';
+import '../models/settings.dart';
 import '../utils/constants.dart';
 import '../utils/tetromino_data.dart';
 
 /// Minimalist game board with Playdate-inspired aesthetic.
-///
-/// Clean black and white rendering with simple block shapes.
-/// No gradients, no shadows - just pure geometric forms.
 class GameBoardWidget extends StatelessWidget {
   final TetrisEngine engine;
+  final GameSettings settings;
 
-  const GameBoardWidget({super.key, required this.engine});
+  const GameBoardWidget({
+    super.key,
+    required this.engine,
+    required this.settings,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -20,8 +23,8 @@ class GameBoardWidget extends StatelessWidget {
         final cellSize = _calculateCellSize(constraints);
         return Container(
           decoration: BoxDecoration(
-            color: Colors.black,
-            border: Border.all(color: Colors.grey[800]!, width: 1),
+            color: settings.backgroundColor,
+            border: Border.all(color: settings.borderColor, width: 1),
           ),
           child: CustomPaint(
             size: Size(
@@ -33,6 +36,8 @@ class GameBoardWidget extends StatelessWidget {
               currentPiece: engine.currentPiece,
               clearingLines: engine.clearingLines,
               cellSize: cellSize,
+              darkMode: settings.darkMode,
+              filledBlocks: settings.filledBlocks,
             ),
           ),
         );
@@ -55,12 +60,16 @@ class _GameBoardPainter extends CustomPainter {
   final Piece? currentPiece;
   final Set<int> clearingLines;
   final double cellSize;
+  final bool darkMode;
+  final bool filledBlocks;
 
   _GameBoardPainter({
     required this.grid,
     required this.currentPiece,
     required this.clearingLines,
     required this.cellSize,
+    required this.darkMode,
+    required this.filledBlocks,
   });
 
   @override
@@ -73,7 +82,7 @@ class _GameBoardPainter extends CustomPainter {
 
   void _drawGrid(Canvas canvas) {
     final paint = Paint()
-      ..color = Colors.grey[900]!
+      ..color = darkMode ? Colors.grey[900]! : Colors.grey[200]!
       ..strokeWidth = 0.5;
 
     for (int r = 0; r <= GameConstants.boardHeight; r++) {
@@ -98,7 +107,8 @@ class _GameBoardPainter extends CustomPainter {
       for (int c = 0; c < GameConstants.boardWidth; c++) {
         final cellType = grid[r][c];
         if (cellType != null) {
-          _drawBlock(canvas, r, c, TetrominoData.pieceColors[PieceType.values[cellType]]!);
+          final color = TetrominoData.pieceColors[PieceType.values[cellType]]!;
+          _drawBlock(canvas, r, c, _adjustColorForMode(color));
         }
       }
     }
@@ -107,7 +117,7 @@ class _GameBoardPainter extends CustomPainter {
   void _drawCurrentPiece(Canvas canvas) {
     if (currentPiece == null) return;
 
-    final color = TetrominoData.pieceColors[currentPiece!.type]!;
+    final color = _adjustColorForMode(TetrominoData.pieceColors[currentPiece!.type]!);
     for (final cell in currentPiece!.cells) {
       final int r = currentPiece!.row + cell.row;
       final int c = currentPiece!.col + cell.col;
@@ -121,7 +131,7 @@ class _GameBoardPainter extends CustomPainter {
   void _drawClearingFlash(Canvas canvas) {
     if (clearingLines.isEmpty) return;
 
-    final flashPaint = Paint()..color = Colors.white;
+    final flashPaint = Paint()..color = darkMode ? Colors.white : Colors.black;
 
     for (final r in clearingLines) {
       canvas.drawRect(
@@ -129,6 +139,14 @@ class _GameBoardPainter extends CustomPainter {
         flashPaint,
       );
     }
+  }
+
+  Color _adjustColorForMode(Color color) {
+    if (darkMode) return color;
+    // In light mode, darken the colors for contrast
+    return HSLColor.fromColor(color).withLightness(
+      (HSLColor.fromColor(color).lightness * 0.6).clamp(0.0, 1.0),
+    ).toColor();
   }
 
   void _drawBlock(Canvas canvas, int row, int col, Color color) {
@@ -139,8 +157,16 @@ class _GameBoardPainter extends CustomPainter {
       cellSize - 2,
     );
 
-    final fillPaint = Paint()..color = color;
-    canvas.drawRect(rect, fillPaint);
+    if (filledBlocks) {
+      canvas.drawRect(rect, Paint()..color = color);
+    } else {
+      // Wireframe mode - just the outline
+      final strokePaint = Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2;
+      canvas.drawRect(rect, strokePaint);
+    }
   }
 
   @override

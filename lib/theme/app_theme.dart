@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
 
 /// Minimalist black and white theme for Playdate-inspired Tetris.
-///
-/// Uses only grayscale colors for a clean, focused aesthetic.
-/// No colors, no distractions - just pure gameplay.
 class AppTheme {
   AppTheme._();
 
@@ -56,6 +53,52 @@ class AppTheme {
     ),
     dialogTheme: const DialogThemeData(
       backgroundColor: darkGray,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.all(Radius.circular(4)),
+      ),
+    ),
+  );
+
+  static final ThemeData lightTheme = ThemeData(
+    brightness: Brightness.light,
+    scaffoldBackgroundColor: pureWhite,
+    primaryColor: pureBlack,
+    colorScheme: const ColorScheme.light(
+      primary: pureBlack,
+      secondary: darkGray,
+      surface: offWhite,
+      error: mediumGray,
+    ),
+    fontFamily: 'monospace',
+    textTheme: const TextTheme(
+      headlineLarge: TextStyle(
+        color: pureBlack,
+        fontSize: 48,
+        fontWeight: FontWeight.w900,
+        letterSpacing: 8,
+      ),
+      headlineMedium: TextStyle(
+        color: pureBlack,
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+        letterSpacing: 4,
+      ),
+      bodyLarge: TextStyle(
+        color: darkGray,
+        fontSize: 14,
+      ),
+      bodyMedium: TextStyle(
+        color: mediumGray,
+        fontSize: 12,
+      ),
+    ),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: pureWhite,
+      elevation: 0,
+      iconTheme: IconThemeData(color: pureBlack),
+    ),
+    dialogTheme: const DialogThemeData(
+      backgroundColor: pureWhite,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.all(Radius.circular(4)),
       ),

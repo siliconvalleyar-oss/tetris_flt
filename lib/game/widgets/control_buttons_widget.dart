@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../models/settings.dart';
 
 /// Minimalist control buttons with Playdate aesthetic.
 class ControlButtonsWidget extends StatelessWidget {
@@ -8,6 +9,7 @@ class ControlButtonsWidget extends StatelessWidget {
   final VoidCallback onSoftDrop;
   final VoidCallback onHardDrop;
   final VoidCallback onPause;
+  final GameSettings settings;
 
   const ControlButtonsWidget({
     super.key,
@@ -17,6 +19,7 @@ class ControlButtonsWidget extends StatelessWidget {
     required this.onSoftDrop,
     required this.onHardDrop,
     required this.onPause,
+    required this.settings,
   });
 
   @override
@@ -33,24 +36,28 @@ class ControlButtonsWidget extends StatelessWidget {
                 label: 'ROT',
                 icon: Icons.rotate_90_degrees_ccw,
                 onPressed: onRotate,
+                settings: settings,
               ),
               const SizedBox(width: 8),
               _ControlButton(
                 label: 'DROP',
                 icon: Icons.arrow_downward,
                 onPressed: onSoftDrop,
+                settings: settings,
               ),
               const SizedBox(width: 8),
               _ControlButton(
                 label: 'HARD',
                 icon: Icons.vertical_align_bottom,
                 onPressed: onHardDrop,
+                settings: settings,
               ),
               const SizedBox(width: 8),
               _ControlButton(
                 label: 'PAUSE',
                 icon: Icons.pause,
                 onPressed: onPause,
+                settings: settings,
               ),
             ],
           ),
@@ -61,11 +68,13 @@ class ControlButtonsWidget extends StatelessWidget {
               _DirectionButton(
                 icon: Icons.chevron_left,
                 onPressed: onLeft,
+                settings: settings,
               ),
               const SizedBox(width: 16),
               _DirectionButton(
                 icon: Icons.chevron_right,
                 onPressed: onRight,
+                settings: settings,
               ),
             ],
           ),
@@ -80,11 +89,13 @@ class _ControlButton extends StatelessWidget {
   final String label;
   final IconData icon;
   final VoidCallback onPressed;
+  final GameSettings settings;
 
   const _ControlButton({
     required this.label,
     required this.icon,
     required this.onPressed,
+    required this.settings,
   });
 
   @override
@@ -95,17 +106,17 @@ class _ControlButton extends StatelessWidget {
         width: 60,
         height: 44,
         decoration: BoxDecoration(
-          color: Colors.black,
-          border: Border.all(color: Colors.grey[700]!, width: 1),
+          color: settings.backgroundColor,
+          border: Border.all(color: settings.borderColor, width: 1),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.grey[400], size: 18),
+            Icon(icon, color: settings.lightTextColor, size: 18),
             Text(
               label,
               style: TextStyle(
-                color: Colors.grey[500],
+                color: settings.lightTextColor,
                 fontSize: 8,
                 fontWeight: FontWeight.w500,
                 letterSpacing: 1,
@@ -122,10 +133,12 @@ class _ControlButton extends StatelessWidget {
 class _DirectionButton extends StatelessWidget {
   final IconData icon;
   final VoidCallback onPressed;
+  final GameSettings settings;
 
   const _DirectionButton({
     required this.icon,
     required this.onPressed,
+    required this.settings,
   });
 
   @override
@@ -136,10 +149,10 @@ class _DirectionButton extends StatelessWidget {
         width: 80,
         height: 44,
         decoration: BoxDecoration(
-          color: Colors.black,
-          border: Border.all(color: Colors.grey[700]!, width: 1),
+          color: settings.backgroundColor,
+          border: Border.all(color: settings.borderColor, width: 1),
         ),
-        child: Icon(icon, color: Colors.grey[400], size: 24),
+        child: Icon(icon, color: settings.lightTextColor, size: 24),
       ),
     );
   }

@@ -4,6 +4,7 @@ import 'package:flutter/scheduler.dart';
 import '../logic/tetris_engine.dart';
 import '../models/game_state.dart';
 import '../models/difficulty.dart';
+import '../models/settings.dart';
 import '../widgets/game_board_widget.dart';
 import '../widgets/piece_preview_widget.dart';
 import '../widgets/score_panel_widget.dart';
@@ -12,11 +13,15 @@ import '../services/audio_service.dart';
 import 'menu_screen.dart';
 
 /// Minimalist game screen with Playdate-inspired aesthetic.
-///
-/// Clean black and white design focused purely on gameplay.
 class GameScreen extends StatefulWidget {
   final Difficulty difficulty;
-  const GameScreen({super.key, this.difficulty = Difficulty.normal});
+  final GameSettings settings;
+
+  const GameScreen({
+    super.key,
+    this.difficulty = Difficulty.normal,
+    required this.settings,
+  });
 
   @override
   State<GameScreen> createState() => _GameScreenState();
@@ -42,7 +47,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   Future<void> _initializeGame() async {
     try {
-      await AudioService.instance.init();
       _engine.init();
       _engine.startGame();
       _previousTime = Duration.zero;
@@ -78,7 +82,6 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     _ticker.dispose();
     _engine.removeListener(_onEngineChanged);
     _engine.dispose();
-    AudioService.instance.dispose();
     super.dispose();
   }
 
@@ -105,22 +108,29 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   void _goToMenu() {
     Navigator.of(context).pushAndRemoveUntil(
-      MaterialPageRoute(builder: (_) => const MenuScreen()),
+      MaterialPageRoute(
+        builder: (_) => MenuScreen(settings: widget.settings),
+      ),
       (route) => false,
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return KeyboardListener(
-      focusNode: _focusNode,
-      onKeyEvent: _handleKeyEvent,
-      child: Scaffold(
-        backgroundColor: Colors.black,
-        body: SafeArea(
-          child: _buildBody(),
-        ),
-      ),
+    return AnimatedBuilder(
+      animation: widget.settings,
+      builder: (context, _) {
+        return KeyboardListener(
+          focusNode: _focusNode,
+          onKeyEvent: _handleKeyEvent,
+          child: Scaffold(
+            backgroundColor: widget.settings.backgroundColor,
+            body: SafeArea(
+              child: _buildBody(),
+            ),
+          ),
+        );
+      },
     );
   }
 
@@ -132,7 +142,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildLoadingScreen() {
-    return const Center(
+    return Center(
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -140,15 +150,15 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             width: 24,
             height: 24,
             child: CircularProgressIndicator(
-              color: Colors.white,
+              color: widget.settings.foregroundColor,
               strokeWidth: 2,
             ),
           ),
-          SizedBox(height: 16),
+          const SizedBox(height: 16),
           Text(
             'LOADING...',
             style: TextStyle(
-              color: Colors.grey,
+              color: widget.settings.lightTextColor,
               fontSize: 10,
               letterSpacing: 4,
               fontWeight: FontWeight.w500,
@@ -166,12 +176,12 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(Icons.error_outline, color: Colors.grey, size: 48),
+            Icon(Icons.error_outline, color: widget.settings.lightTextColor, size: 48),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'ERROR',
               style: TextStyle(
-                color: Colors.white,
+                color: widget.settings.foregroundColor,
                 fontSize: 18,
                 letterSpacing: 4,
                 fontWeight: FontWeight.bold,
@@ -181,7 +191,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             Text(
               _initError!,
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.grey[600], fontSize: 11),
+              style: TextStyle(color: widget.settings.lightTextColor, fontSize: 11),
             ),
             const SizedBox(height: 24),
             ElevatedButton(
@@ -193,8 +203,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 _initializeGame();
               },
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.white,
-                foregroundColor: Colors.black,
+                backgroundColor: widget.settings.foregroundColor,
+                foregroundColor: widget.settings.backgroundColor,
                 shape: const RoundedRectangleBorder(),
               ),
               child: const Text('RETRY'),
@@ -204,7 +214,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               onPressed: _goToMenu,
               child: Text(
                 'MENU',
-                style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                style: TextStyle(color: widget.settings.lightTextColor, fontSize: 11),
               ),
             ),
           ],
@@ -227,6 +237,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               combo: _engine.combo,
               difficultyName: _engine.config.name,
               difficultyColor: _engine.config.color,
+              settings: widget.settings,
             ),
             const SizedBox(height: 8),
             Expanded(
@@ -236,7 +247,10 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                   children: [
                     Expanded(
                       flex: 3,
-                      child: GameBoardWidget(engine: _engine),
+                      child: GameBoardWidget(
+                        engine: _engine,
+                        settings: widget.settings,
+                      ),
                     ),
                     const SizedBox(width: 8),
                     Expanded(
@@ -244,14 +258,9 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
-                          PiecePreviewWidget(piece: _engine.nextPiece),
-                          const SizedBox(height: 12),
-                          _SoundToggle(
-                            enabled: AudioService.instance.enabled,
-                            onToggle: (value) {
-                              AudioService.instance.setEnabled(value);
-                              setState(() {});
-                            },
+                          PiecePreviewWidget(
+                            piece: _engine.nextPiece,
+                            settings: widget.settings,
                           ),
                         ],
                       ),
@@ -267,6 +276,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               onSoftDrop: _engine.softDrop,
               onHardDrop: _engine.hardDrop,
               onPause: _engine.togglePause,
+              settings: widget.settings,
             ),
           ],
         ),
@@ -291,6 +301,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               key: ValueKey(popup.id),
               amount: popup.amount,
               label: popup.label,
+              settings: widget.settings,
             ),
           );
         }).toList(),
@@ -300,15 +311,15 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   Widget _buildPauseOverlay() {
     return Container(
-      color: Colors.black.withOpacity(0.85),
+      color: widget.settings.backgroundColor.withOpacity(0.85),
       child: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
+            Text(
               'PAUSED',
               style: TextStyle(
-                color: Colors.white,
+                color: widget.settings.foregroundColor,
                 fontSize: 32,
                 fontWeight: FontWeight.bold,
                 letterSpacing: 8,
@@ -318,7 +329,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
             Text(
               _engine.config.name,
               style: TextStyle(
-                color: Colors.grey[600],
+                color: widget.settings.lightTextColor,
                 fontSize: 12,
                 letterSpacing: 3,
               ),
@@ -330,11 +341,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               child: ElevatedButton(
                 onPressed: _engine.togglePause,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.white,
-                  foregroundColor: Colors.black,
+                  backgroundColor: widget.settings.foregroundColor,
+                  foregroundColor: widget.settings.backgroundColor,
                   shape: const RoundedRectangleBorder(),
                 ),
-                child: const Text(
+                child: Text(
                   'RESUME',
                   style: TextStyle(
                     fontSize: 14,
@@ -349,7 +360,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               onPressed: _goToMenu,
               child: Text(
                 'MENU',
-                style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                style: TextStyle(color: widget.settings.lightTextColor, fontSize: 11),
               ),
             ),
           ],
@@ -361,16 +372,16 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   Widget _buildGameOverOverlay() {
     final isNewHighScore = _engine.score >= _engine.highScore && _engine.score > 0;
     return Container(
-      color: Colors.black.withOpacity(0.9),
+      color: widget.settings.backgroundColor.withOpacity(0.9),
       child: Center(
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
+              Text(
                 'GAME OVER',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: widget.settings.foregroundColor,
                   fontSize: 36,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 6,
@@ -380,12 +391,12 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey[700]!),
+                  border: Border.all(color: widget.settings.borderColor),
                 ),
                 child: Text(
                   _engine.config.name,
                   style: TextStyle(
-                    color: Colors.grey[500],
+                    color: widget.settings.lightTextColor,
                     fontSize: 11,
                     letterSpacing: 3,
                   ),
@@ -396,12 +407,12 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.white),
+                    border: Border.all(color: widget.settings.foregroundColor),
                   ),
-                  child: const Text(
+                  child: Text(
                     'NEW RECORD',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: widget.settings.foregroundColor,
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
                       letterSpacing: 3,
@@ -412,8 +423,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               const SizedBox(height: 16),
               Text(
                 '${_engine.score}',
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: widget.settings.foregroundColor,
                   fontSize: 48,
                   fontWeight: FontWeight.bold,
                   fontFamily: 'monospace',
@@ -423,7 +434,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
               Text(
                 'LV ${_engine.level}  ·  ${_engine.lines} LINES',
                 style: TextStyle(
-                  color: Colors.grey[500],
+                  color: widget.settings.lightTextColor,
                   fontSize: 12,
                   letterSpacing: 2,
                 ),
@@ -435,11 +446,11 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 child: ElevatedButton(
                   onPressed: _engine.restart,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: Colors.black,
+                    backgroundColor: widget.settings.foregroundColor,
+                    foregroundColor: widget.settings.backgroundColor,
                     shape: const RoundedRectangleBorder(),
                   ),
-                  child: const Text(
+                  child: Text(
                     'PLAY AGAIN',
                     style: TextStyle(
                       fontSize: 14,
@@ -454,7 +465,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 onPressed: _goToMenu,
                 child: Text(
                   'MENU',
-                  style: TextStyle(color: Colors.grey[600], fontSize: 11),
+                  style: TextStyle(color: widget.settings.lightTextColor, fontSize: 11),
                 ),
               ),
             ],
@@ -469,11 +480,13 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 class _ScorePopupWidget extends StatefulWidget {
   final int amount;
   final String label;
+  final GameSettings settings;
 
   const _ScorePopupWidget({
     super.key,
     required this.amount,
     required this.label,
+    required this.settings,
   });
 
   @override
@@ -519,8 +532,8 @@ class _ScorePopupWidgetState extends State<_ScorePopupWidget>
           children: [
             Text(
               '+${widget.amount}',
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: widget.settings.foregroundColor,
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
                 fontFamily: 'monospace',
@@ -530,39 +543,13 @@ class _ScorePopupWidgetState extends State<_ScorePopupWidget>
               Text(
                 widget.label,
                 style: TextStyle(
-                  color: Colors.grey[500],
+                  color: widget.settings.lightTextColor,
                   fontSize: 10,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1,
                 ),
               ),
           ],
-        ),
-      ),
-    );
-  }
-}
-
-/// Minimalist sound toggle button.
-class _SoundToggle extends StatelessWidget {
-  final bool enabled;
-  final ValueChanged<bool> onToggle;
-
-  const _SoundToggle({required this.enabled, required this.onToggle});
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => onToggle(!enabled),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey[800]!, width: 1),
-        ),
-        child: Icon(
-          enabled ? Icons.volume_up : Icons.volume_off,
-          color: enabled ? Colors.grey[400] : Colors.grey[700],
-          size: 20,
         ),
       ),
     );
