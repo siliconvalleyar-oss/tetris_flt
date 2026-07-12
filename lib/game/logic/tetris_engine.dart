@@ -244,13 +244,7 @@ class TetrisEngine extends ChangeNotifier {
 
     board.fixPiece(_currentPiece!);
 
-    // Game over: pieza fijada completamente arriba
-    if (_currentPiece!.row < 1) {
-      _gameOver();
-      return;
-    }
-
-    // Detectar líneas completas
+    // Detectar TODAS las líneas completas primero
     final detectedLines = <int>[];
     for (int r = GameConstants.boardHeight - 1; r >= 0; r--) {
       if (board.grid[r].every((cell) => cell != null)) {
@@ -261,6 +255,11 @@ class TetrisEngine extends ChangeNotifier {
     if (detectedLines.isNotEmpty) {
       _startLineClear(detectedLines);
     } else {
+      // Game over solo si no se limpió nada y hay bloques en la fila 0
+      if (board.isGameOver()) {
+        _gameOver();
+        return;
+      }
       scoring.resetCombo();
       _lastActionWasRotate = false;
       _spawnPiece();
