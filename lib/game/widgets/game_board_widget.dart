@@ -38,6 +38,8 @@ class GameBoardWidget extends StatelessWidget {
               cellSize: cellSize,
               darkMode: settings.darkMode,
               filledBlocks: settings.filledBlocks,
+              borderColor: settings.borderColor,
+              foregroundColor: settings.foregroundColor,
             ),
           ),
         );
@@ -62,6 +64,8 @@ class _GameBoardPainter extends CustomPainter {
   final double cellSize;
   final bool darkMode;
   final bool filledBlocks;
+  final Color borderColor;
+  final Color foregroundColor;
 
   _GameBoardPainter({
     required this.grid,
@@ -70,6 +74,8 @@ class _GameBoardPainter extends CustomPainter {
     required this.cellSize,
     required this.darkMode,
     required this.filledBlocks,
+    required this.borderColor,
+    required this.foregroundColor,
   });
 
   @override
@@ -82,7 +88,7 @@ class _GameBoardPainter extends CustomPainter {
 
   void _drawGrid(Canvas canvas) {
     final paint = Paint()
-      ..color = settings.borderColor
+      ..color = borderColor
       ..strokeWidth = 0.5;
 
     for (int r = 0; r <= GameConstants.boardHeight; r++) {
@@ -131,7 +137,7 @@ class _GameBoardPainter extends CustomPainter {
   void _drawClearingFlash(Canvas canvas) {
     if (clearingLines.isEmpty) return;
 
-    final flashPaint = Paint()..color = settings.foregroundColor;
+    final flashPaint = Paint()..color = foregroundColor;
 
     for (final r in clearingLines) {
       canvas.drawRect(
