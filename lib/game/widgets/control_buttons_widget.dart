@@ -10,6 +10,7 @@ class ControlButtonsWidget extends StatelessWidget {
   final VoidCallback onHardDrop;
   final VoidCallback onPause;
   final GameSettings settings;
+  final bool isLandscape;
 
   const ControlButtonsWidget({
     super.key,
@@ -20,10 +21,16 @@ class ControlButtonsWidget extends StatelessWidget {
     required this.onHardDrop,
     required this.onPause,
     required this.settings,
+    this.isLandscape = false,
   });
 
   @override
   Widget build(BuildContext context) {
+    if (isLandscape) return _buildLandscape();
+    return _buildPortrait();
+  }
+
+  Widget _buildPortrait() {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Column(
@@ -32,50 +39,53 @@ class ControlButtonsWidget extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _ControlButton(
-                label: 'ROT',
-                icon: Icons.rotate_90_degrees_ccw,
-                onPressed: onRotate,
-                settings: settings,
-              ),
+              _ControlButton(label: 'ROT', icon: Icons.rotate_90_degrees_ccw, onPressed: onRotate, settings: settings),
               const SizedBox(width: 16),
-              _ControlButton(
-                label: 'DROP',
-                icon: Icons.arrow_downward,
-                onPressed: onSoftDrop,
-                settings: settings,
-              ),
+              _ControlButton(label: 'DROP', icon: Icons.arrow_downward, onPressed: onSoftDrop, settings: settings),
               const SizedBox(width: 16),
-              _ControlButton(
-                label: 'HARD',
-                icon: Icons.vertical_align_bottom,
-                onPressed: onHardDrop,
-                settings: settings,
-              ),
+              _ControlButton(label: 'HARD', icon: Icons.vertical_align_bottom, onPressed: onHardDrop, settings: settings),
               const SizedBox(width: 16),
-              _ControlButton(
-                label: 'PAUSE',
-                icon: Icons.pause,
-                onPressed: onPause,
-                settings: settings,
-              ),
+              _ControlButton(label: 'PAUSE', icon: Icons.pause, onPressed: onPause, settings: settings),
             ],
           ),
           const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              _DirectionButton(
-                icon: Icons.chevron_left,
-                onPressed: onLeft,
-                settings: settings,
-              ),
+              _DirectionButton(icon: Icons.chevron_left, onPressed: onLeft, settings: settings),
               const SizedBox(width: 32),
-              _DirectionButton(
-                icon: Icons.chevron_right,
-                onPressed: onRight,
-                settings: settings,
-              ),
+              _DirectionButton(icon: Icons.chevron_right, onPressed: onRight, settings: settings),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLandscape() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _ControlButton(label: 'ROT', icon: Icons.rotate_90_degrees_ccw, onPressed: onRotate, settings: settings),
+              const SizedBox(width: 12),
+              _ControlButton(label: 'DROP', icon: Icons.arrow_downward, onPressed: onSoftDrop, settings: settings),
+              const SizedBox(width: 12),
+              _ControlButton(label: 'HARD', icon: Icons.vertical_align_bottom, onPressed: onHardDrop, settings: settings),
+              const SizedBox(width: 12),
+              _ControlButton(label: 'PAUSE', icon: Icons.pause, onPressed: onPause, settings: settings),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              _DirectionButton(icon: Icons.chevron_left, onPressed: onLeft, settings: settings),
+              const Spacer(),
+              _DirectionButton(icon: Icons.chevron_right, onPressed: onRight, settings: settings),
             ],
           ),
         ],

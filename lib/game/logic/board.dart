@@ -64,22 +64,6 @@ class Board {
     }
   }
 
-  /// Elimina todas las filas completamente llenas y devuelve la cantidad.
-  ///
-  /// Las filas eliminadas se reemplazan por filas vacías en la parte superior.
-  int clearLines() {
-    int cleared = 0;
-    for (int r = GameConstants.boardHeight - 1; r >= 0; r--) {
-      if (_grid[r].every((cell) => cell != null)) {
-        _grid.removeAt(r);
-        _grid.insert(0, List.filled(GameConstants.boardWidth, null));
-        cleared++;
-        r++;
-      }
-    }
-    return cleared;
-  }
-
   /// Verifica si hay bloques en la fila superior (game over).
   bool isGameOver() {
     for (int c = 0; c < GameConstants.boardWidth; c++) {

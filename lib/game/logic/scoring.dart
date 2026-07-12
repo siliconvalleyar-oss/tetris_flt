@@ -163,12 +163,16 @@ class Scoring {
     switch (count) {
       case 1:
         buffer.write('SINGLE');
+        break;
       case 2:
         buffer.write('DOUBLE');
+        break;
       case 3:
         buffer.write('TRIPLE');
+        break;
       case 4:
         buffer.write('TETRIS');
+        break;
     }
     if (_combo > 1) buffer.write(' ×$_combo');
     if (_backToBackCount > 1) buffer.write(' B2B');

@@ -226,65 +226,139 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildGameLayout() {
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
     return Stack(
       children: [
-        Column(
-          children: [
-            const SizedBox(height: 8),
-            ScorePanelWidget(
-              score: _engine.score,
-              level: _engine.level,
-              lines: _engine.lines,
-              highScore: _engine.highScore,
-              combo: _engine.combo,
-              difficultyName: _engine.config.name,
-              difficultyColor: _engine.config.color,
-              settings: widget.settings,
-            ),
-            const SizedBox(height: 8),
-            Expanded(
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: Row(
-                  children: [
-                    Expanded(
-                      flex: 3,
-                      child: GameBoardWidget(
-                        engine: _engine,
-                        settings: widget.settings,
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      flex: 1,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.start,
-                        children: [
-                          PiecePreviewWidget(
-                            piece: _engine.nextPiece,
-                            settings: widget.settings,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            ControlButtonsWidget(
-              onLeft: _engine.moveLeft,
-              onRight: _engine.moveRight,
-              onRotate: _engine.rotate,
-              onSoftDrop: _engine.softDrop,
-              onHardDrop: _engine.hardDrop,
-              onPause: _engine.togglePause,
-              settings: widget.settings,
-            ),
-          ],
-        ),
+        if (isLandscape) _buildLandscapeLayout() else _buildPortraitLayout(),
         if (_engine.state == GameState.paused) _buildPauseOverlay(),
         if (_engine.state == GameState.gameOver) _buildGameOverOverlay(),
         _buildScorePopups(),
+      ],
+    );
+  }
+
+  Widget _buildPortraitLayout() {
+    return Column(
+      children: [
+        const SizedBox(height: 8),
+        ScorePanelWidget(
+          score: _engine.score,
+          level: _engine.level,
+          lines: _engine.lines,
+          highScore: _engine.highScore,
+          combo: _engine.combo,
+          difficultyName: _engine.config.name,
+          difficultyColor: _engine.config.color,
+          settings: widget.settings,
+        ),
+        const SizedBox(height: 8),
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 3,
+                  child: GameBoardWidget(
+                    engine: _engine,
+                    settings: widget.settings,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  flex: 1,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      PiecePreviewWidget(
+                        piece: _engine.nextPiece,
+                        settings: widget.settings,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+        ControlButtonsWidget(
+          onLeft: _engine.moveLeft,
+          onRight: _engine.moveRight,
+          onRotate: _engine.rotate,
+          onSoftDrop: _engine.softDrop,
+          onHardDrop: _engine.hardDrop,
+          onPause: _engine.togglePause,
+          settings: widget.settings,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildLandscapeLayout() {
+    return Column(
+      children: [
+        Expanded(
+          child: Row(
+            children: [
+              SizedBox(
+                width: 80,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      _LandscapeLabel(label: 'SCORE', value: '${_engine.score}', settings: widget.settings),
+                      const SizedBox(height: 12),
+                      _LandscapeLabel(label: 'LEVEL', value: '${_engine.level}', settings: widget.settings),
+                      const SizedBox(height: 12),
+                      _LandscapeLabel(label: 'LINES', value: '${_engine.lines}', settings: widget.settings),
+                      const SizedBox(height: 12),
+                      _LandscapeLabel(label: 'BEST', value: '${_engine.highScore}', settings: widget.settings),
+                      if (_engine.combo > 1) ...[
+                        const SizedBox(height: 12),
+                        _LandscapeLabel(label: 'COMBO', value: '×${_engine.combo}', settings: widget.settings),
+                      ],
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: GameBoardWidget(
+                    engine: _engine,
+                    settings: widget.settings,
+                  ),
+                ),
+              ),
+              SizedBox(
+                width: 80,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    children: [
+                      PiecePreviewWidget(
+                        piece: _engine.nextPiece,
+                        settings: widget.settings,
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        ControlButtonsWidget(
+          onLeft: _engine.moveLeft,
+          onRight: _engine.moveRight,
+          onRotate: _engine.rotate,
+          onSoftDrop: _engine.softDrop,
+          onHardDrop: _engine.hardDrop,
+          onPause: _engine.togglePause,
+          settings: widget.settings,
+          isLandscape: true,
+        ),
       ],
     );
   }
@@ -554,6 +628,47 @@ class _ScorePopupWidgetState extends State<_ScorePopupWidget>
           ],
         ),
       ),
+    );
+  }
+}
+
+/// Landscape score label for side panel.
+class _LandscapeLabel extends StatelessWidget {
+  final String label;
+  final String value;
+  final GameSettings settings;
+
+  const _LandscapeLabel({
+    required this.label,
+    required this.value,
+    required this.settings,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: settings.lightTextColor,
+            fontSize: 8,
+            fontWeight: FontWeight.w500,
+            letterSpacing: 1,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: TextStyle(
+            color: settings.foregroundColor,
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            fontFamily: 'monospace',
+          ),
+        ),
+      ],
     );
   }
 }
