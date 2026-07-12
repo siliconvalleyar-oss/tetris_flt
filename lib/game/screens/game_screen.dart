@@ -119,6 +119,12 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
+    final isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
+    if (isLandscape) {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.immersiveSticky);
+    } else {
+      SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+    }
     return AnimatedBuilder(
       animation: widget.settings,
       builder: (context, _) {
@@ -127,9 +133,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
           onKeyEvent: _handleKeyEvent,
           child: Scaffold(
             backgroundColor: widget.settings.backgroundColor,
-            body: SafeArea(
-              child: _buildBody(),
-            ),
+            body: isLandscape ? _buildBody() : SafeArea(child: _buildBody()),
           ),
         );
       },
@@ -296,67 +300,69 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
 
   Widget _buildLandscapeLayout() {
     final s = widget.settings;
+    final screenH = MediaQuery.of(context).size.height;
+    final boardW = screenH * 0.5; // 10:20 ratio → width = height/2
+
     return Row(
       children: [
         // ─── Left panel: Score + ROT/DROP + ← ───
         SizedBox(
-          width: 72,
+          width: 64,
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
             child: Column(
               children: [
-                const SizedBox(height: 4),
                 _LandscapeLabel(label: 'SCORE', value: '${_engine.score}', settings: s),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 _LandscapeLabel(label: 'LEVEL', value: '${_engine.level}', settings: s),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 _LandscapeLabel(label: 'LINES', value: '${_engine.lines}', settings: s),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 _LandscapeLabel(label: 'BEST', value: '${_engine.highScore}', settings: s),
                 if (_engine.combo > 1) ...[
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   _LandscapeLabel(label: 'COMBO', value: '×${_engine.combo}', settings: s),
                 ],
                 const Spacer(),
                 _LandscapeActionBtn(label: 'ROT', icon: Icons.rotate_90_degrees_ccw, onPressed: _engine.rotate, settings: s),
-                const SizedBox(height: 6),
-                _LandscapeActionBtn(label: 'DROP', icon: Icons.arrow_downward, onPressed: _engine.softDrop, settings: s),
-                const SizedBox(height: 6),
-                _LandscapeDirBtn(icon: Icons.chevron_left, onPressed: _engine.moveLeft, settings: s),
                 const SizedBox(height: 4),
+                _LandscapeActionBtn(label: 'DROP', icon: Icons.arrow_downward, onPressed: _engine.softDrop, settings: s),
+                const SizedBox(height: 4),
+                _LandscapeDirBtn(icon: Icons.chevron_left, onPressed: _engine.moveLeft, settings: s),
               ],
             ),
           ),
         ),
-        // ─── Center: Game board ───
+        // ─── Center: Game board (full height, centered) ───
         Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
-            child: GameBoardWidget(
-              engine: _engine,
-              settings: s,
+          child: Center(
+            child: SizedBox(
+              width: boardW,
+              height: screenH,
+              child: GameBoardWidget(
+                engine: _engine,
+                settings: s,
+              ),
             ),
           ),
         ),
         // ─── Right panel: NEXT + HARD/PAUSE + → ───
         SizedBox(
-          width: 72,
+          width: 64,
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
             child: Column(
               children: [
-                const SizedBox(height: 4),
                 PiecePreviewWidget(
                   piece: _engine.nextPiece,
                   settings: s,
                 ),
                 const Spacer(),
                 _LandscapeActionBtn(label: 'HARD', icon: Icons.vertical_align_bottom, onPressed: _engine.hardDrop, settings: s),
-                const SizedBox(height: 6),
-                _LandscapeActionBtn(label: 'PAUSE', icon: Icons.pause, onPressed: _engine.togglePause, settings: s),
-                const SizedBox(height: 6),
-                _LandscapeDirBtn(icon: Icons.chevron_right, onPressed: _engine.moveRight, settings: s),
                 const SizedBox(height: 4),
+                _LandscapeActionBtn(label: 'PAUSE', icon: Icons.pause, onPressed: _engine.togglePause, settings: s),
+                const SizedBox(height: 4),
+                _LandscapeDirBtn(icon: Icons.chevron_right, onPressed: _engine.moveRight, settings: s),
               ],
             ),
           ),
