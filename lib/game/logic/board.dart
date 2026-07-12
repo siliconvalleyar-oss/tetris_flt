@@ -91,10 +91,12 @@ class Board {
   ///
   /// Cada fila removida se reemplaza por una fila vacía al tope.
   void removeRows(List<int> rows) {
-    final sorted = List<int>.from(rows)..sort((a, b) => b.compareTo(a));
+    final sorted = List<int>.from(rows)..sort();
+    int removed = 0;
     for (final r in sorted) {
-      _grid.removeAt(r);
+      _grid.removeAt(r - removed);
       _grid.insert(0, List.filled(GameConstants.boardWidth, null));
+      removed++;
     }
   }
 }
