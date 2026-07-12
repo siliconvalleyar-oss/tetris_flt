@@ -5,12 +5,12 @@ description: Use when working on the Flutter Tetris game project. Covers build, 
 
 # Tetris Game
 
-Classic Tetris clone built with Flutter para Android e iOS.
+Minimalist Playdate-inspired Tetris con estética grayscale. Flutter para Android.
 
 ## Quick Start
 
 ```bash
-cd tetris_game
+cd tetris_flt
 flutter pub get
 flutter run
 ```
@@ -19,129 +19,192 @@ flutter run
 
 ```
 lib/
-├── main.dart                      # Entry point → MenuScreen
-├── theme/app_theme.dart           # Dark arcade theme
+├── main.dart                          # Entry point → PersistenceService init → MenuScreen
+├── theme/
+│   ├── app_theme.dart                 # 4 themes: light, dark, lightGray, darkGray
+│   └── playdate_theme.dart            # Grayscale palette (legacy, not actively used)
 ├── game/
 │   ├── models/
-│   │   ├── position.dart          # (row, col) coordinate class
-│   │   ├── piece.dart             # Tetromino piece with type/rotation/position
-│   │   ├── game_state.dart        # GameState enum (playing/paused/gameOver)
-│   │   └── difficulty.dart        # Difficulty presets (Easy/Normal/Hard/Expert)
+│   │   ├── position.dart              # (row, col) coordinate class
+│   │   ├── piece.dart                 # PieceType enum + Piece class
+│   │   ├── game_state.dart            # GameState enum (playing/paused/gameOver)
+│   │   ├── difficulty.dart            # 4 difficulty presets with configs
+│   │   ├── theme_mode.dart            # GameThemeMode enum (light/dark/lightGray/darkGray)
+│   │   └── settings.dart              # GameSettings (ChangeNotifier) — theme, sound, filled
 │   ├── logic/
-│   │   ├── board.dart             # Grid 10×20, collision, line clearing, removeRows
-│   │   ├── scoring.dart           # Score + combos + back-to-back + T-Spin + difficulty multiplier
-│   │   └── tetris_engine.dart     # Main game controller (ChangeNotifier + game loop)
+│   │   ├── board.dart                 # Grid 10×20, collision, fixPiece, clearLines, removeRows
+│   │   ├── scoring.dart               # Score + combos + back-to-back + T-Spin + difficulty
+│   │   └── tetris_engine.dart         # Main game controller (ChangeNotifier + Ticker loop)
 │   ├── widgets/
 │   │   ├── game_board_widget.dart     # CustomPainter board + clearing lines flash
 │   │   ├── piece_preview_widget.dart  # Next piece display
 │   │   ├── score_panel_widget.dart    # Score / Level / Lines / Combo / Best
-│   │   └── control_buttons_widget.dart # Touch controls
+│   │   └── control_buttons_widget.dart # Touch controls with press feedback
 │   ├── screens/
-│   │   ├── menu_screen.dart       # Difficulty selection + high scores per difficulty
-│   │   └── game_screen.dart       # Game loop (Ticker) + score popups + overlays
+│   │   ├── menu_screen.dart           # Difficulty + theme selector + settings panel
+│   │   └── game_screen.dart           # Game loop (Ticker) + score popups + overlays
 │   ├── services/
-│   │   ├── audio_service.dart     # Sound effects via audioplayers (synthetic WAV)
-│   │   └── persistence_service.dart # SharedPreferences wrapper
+│   │   ├── audio_service.dart         # Synthetic WAV sounds via audioplayers
+│   │   └── persistence_service.dart   # SharedPreferences (high scores, settings)
 │   └── utils/
-│       ├── constants.dart         # Game constants (speeds, scoring, combos)
-│       ├── tetromino_data.dart    # Piece shape definitions + colors
-│       └── sound_generator.dart   # Programmatic WAV generation
+│       ├── constants.dart             # Board size, scoring values, combo configs
+│       ├── tetromino_data.dart        # 7 pieces × 4 rotations + grayscale colors
+│       └── sound_generator.dart       # Programmatic WAV generation (no audio files)
+docs/
+├── COMPILE.md                         # Remote compilation commands
+├── LEARNINGS.md                       # Git push, remote build, common errors
+└── README.md                          # (if exists)
 ```
+
+## Temas (4 modos)
+
+| Modo       | Botón   | Fondo      | Texto      |
+|------------|---------|------------|------------|
+| Light      | WHITE   | `#FFFFFF`  | negro      |
+| Dark       | BLACK   | `#000000`  | blanco     |
+| Light Gray | GRAY+   | `#D0D0D0`  | oscuro     |
+| Dark Gray  | GRAY-   | `#2A2A2A`  | claro      |
+
+- Selector en Settings del menú (4 botones en fila)
+- Se persiste via `SharedPreferences` (`theme_mode` key)
+- `settings.darkMode` retorna `true` para dark y darkGray
+
+## Configuración Persistida
+
+| Key               | Tipo   | Default | Descripción                    |
+|-------------------|--------|---------|--------------------------------|
+| `theme_mode`      | String | light   | Modo de tema activo            |
+| `filled_blocks`   | Bool   | true    | Bloques sólidos vs wireframe   |
+| `sound_enabled`   | Bool   | true    | Sonido activado                |
+| `difficulty`      | String | normal  | Última dificultad seleccionada |
+| `high_score_<d>`  | Int    | 0       | High score por dificultad      |
+| `last_level`      | Int    | 1       | Último nivel alcanzado         |
 
 ## Dificultades
 
-| Nivel    | Caída base | Reducción/nivel | Nivel inicial | Multiplicador | Color  |
-| -------- | ---------- | --------------- | ------------- | ------------- | ------ |
-| FÁCIL    | 1.5s       | 0.04s           | 1             | 0.8×          | Verde  |
-| NORMAL   | 1.0s       | 0.05s           | 1             | 1.0×          | Azul   |
-| DIFÍCIL  | 0.7s       | 0.055s          | 3             | 1.5×          | Naranja|
-| EXPERTO  | 0.45s      | 0.06s           | 5             | 2.0×          | Rojo   |
-
-Seleccionables desde el menú principal. High score guardado por dificultad.
+| Nivel    | Caída base | Reducción/nivel | Nivel inicial | Multiplicador | Color     |
+|----------|------------|-----------------|---------------|---------------|-----------|
+| EASY     | 1.5s       | 0.04s           | 1             | 0.8×          | `#E0E0E0` |
+| NORMAL   | 1.0s       | 0.05s           | 1             | 1.0×          | `#B0B0B0` |
+| HARD     | 0.7s       | 0.055s          | 3             | 1.5×          | `#808080` |
+| EXPERT   | 0.45s      | 0.06s           | 5             | 2.0×          | `#404040` |
 
 ## Sistema de Puntaje
 
-- **Base**: Single=100, Double=300, Triple=500, Tetris=800 (× nivel × multiplicador dificultad).
-- **Combo**: +50% por cada limpieza consecutiva (ventana de 3s).
-- **Back-to-back Tetris**: +100% por cada Tetris consecutivo.
-- **T-Spin**: +100% + 50% por línea eliminada. Detección: ≥3 esquinas ocupadas.
-- **Soft drop**: 1pt/celda. **Hard drop**: 2pts/celda.
-- **Visual**: Popups animados con el puntaje + etiqueta (ej: "T-SPIN TETRIS ×3 B2B").
+- **Base**: Single=100, Double=300, Triple=500, Tetris=800 (× nivel × multiplicador dificultad)
+- **Combo**: +50% por cada limpieza consecutiva (ventana de 3s)
+- **Back-to-back Tetris**: +100% por cada Tetris consecutivo
+- **T-Spin**: +100% + 50% por línea eliminada. Detección: ≥3 esquinas ocupadas
+- **Soft drop**: 1pt/celda. **Hard drop**: 2pts/celda
+- **Popups**: Animados con label (ej: "T-SPIN TETRIS ×3 B2B")
+
+## Controles
+
+- **Teclado**: ← → mover, ↑ rotar, ↓ soft drop, Espacio hard drop, P/Esc pausa
+- **Touch**: Botones ROT/DROP/HARD/PAUSE + ← → con feedback visual (cambia color al presionar)
 
 ## State Management
 
-`TetrisEngine` (ChangeNotifier) contiene toda la lógica del juego:
-- Board + Scoring + Difficulty
+`TetrisEngine` (ChangeNotifier) contiene:
+- Board + Scoring + Difficulty + HighScore
 - currentPiece / nextPiece
-- Game loop via `update(dt)` llamado desde Ticker
-- Cola de popups animados
-- Timer para flash de líneas
+- Game loop via `update(dt)` desde `Ticker`
+- Cola de popups animados (`ScorePopupEvent`)
+- Timer para flash de líneas (150ms)
+- T-Spin detection
 
 ## Key Architecture Decisions
 
-- **Sin assets externos**: Sonidos generados como WAV sintéticos programáticamente (`SoundGenerator`) y reproducidos con `audioplayers` via `setSourceBytes()`. No se requieren archivos de audio.
-- **60 FPS**: Game loop con `Ticker` de Flutter; engine acumula delta time para auto-drop (gravedad).
-- **Rotación con wall kicks**: 8 offsets probados en orden.
-- **Async line clear**: Flash de 150ms en líneas completadas antes de eliminar.
-- **Persistencia**: SharedPreferences guarda high score por dificultad, último nivel, sonido y dificultad seleccionada.
+- **Sin assets externos**: Sonidos WAV sintéticos (`SoundGenerator`), no archivos de audio
+- **60 FPS**: Ticker de Flutter; engine acumula delta time para auto-drop
+- **Rotación con wall kicks**: 8 offsets probados en orden
+- **Async line clear**: Flash 150ms antes de eliminar líneas
+- **Persistencia**: SharedPreferences con singleton `PersistenceService`
+- **4 temas grayscale**: Selector visual con persistencia
 
 ## Build Commands
 
 ```bash
-# Run on connected device / emulator
+# Local
 flutter run
-
-# Build APK
 flutter build apk --release
 
-# Build iOS (macOS only)
-flutter build ios --release
+# Remoto (ver COMPILE.md para detalles)
+sshpass -p '<PASS>' ssh <USER>@<HOST> "cd <PATH> && git pull && flutter clean && flutter pub get && flutter build apk --release && adb install -r build/app/outputs/flutter-apk/app-release.apk"
+```
+
+## Git Push (con token)
+
+Cada push requiere token temporal + limpieza posterior:
+
+```bash
+# 1. Set URL con token
+git remote set-url origin https://<USER>:<TOKEN>@github.com/<USER>/<REPO>.git
+
+# 2. Push
+git push origin <BRANCH>
+
+# 3. Limpiar URL (quitar token)
+git remote set-url origin https://github.com/<USER>/<REPO>.git
+```
+
+**NUNCA** commitear tokens o passwords en el repositorio.
+
+## Version Tagging
+
+Cada push debe incluir un tag que coincida con `pubspec.yaml`:
+
+```bash
+# Verificar versión
+grep "^version:" pubspec.yaml
+
+# Crear tag
+git tag v1.1.0
+
+# Push con tags
+git push origin <BRANCH> --tags
+
+# Actualizar tag existente
+git tag -d v1.1.0 && git tag v1.1.0
+git push origin <BRANCH> --tags --force
 ```
 
 ## Adding a New Piece Type
 
-1. Add to `PieceType` enum en `models/piece.dart`
-2. Add cells + bounding box size in `utils/tetromino_data.dart`
+1. Add to `PieceType` enum in `models/piece.dart`
+2. Add cells + bounding size in `utils/tetromino_data.dart`
 3. Add color in `pieceColors` map (mismo archivo)
-4. Opcional: ajustar `spawnColumn()` si el ancho difiere
+4. Ajustar `spawnColumn()` si el ancho difiere
 
 ## Adding a New Difficulty
 
-1. Add enum value in `models/difficulty.dart` `Difficulty`
+1. Add enum value in `models/difficulty.dart`
 2. Add config constant in `DifficultyConfig` (mismo archivo)
-3. Add to `all` list (mismo archivo)
-4. Opcional: ajustar `scoreMultiplier` y curvas de velocidad
+3. Add to `all` list
+4. Ajustar `scoreMultiplier` y curvas de velocidad
 
-## Troubleshooting
+## Adding a New Theme Mode
 
-### Pantalla negra después de seleccionar dificultad
+1. Add value to `GameThemeMode` enum in `models/theme_mode.dart`
+2. Add colors in `GameSettings` getters (`backgroundColor`, `foregroundColor`, etc.)
+3. Add `ThemeData` in `theme/app_theme.dart`
+4. Update `AppTheme.forMode()` switch
+5. Update `_themeModeShortLabel()` in `menu_screen.dart`
 
-Si al presionar "JUGAR" la pantalla se queda en negro (o con el spinner de carga indefinidamente):
+## Known Bugs
 
-1. **Verificar errores en consola**: Ejecutar `flutter run` y revisar los logs. La versión actual atrapa errores de inicialización y los muestra en pantalla con botón "REINTENTAR".
+### Line clearing — solo detecta 1 línea
+**Estado**: En investigación (logging agregado en `_lockPiece` y `removeRows`)
+**Síntoma**: Cuando una pieza completa varias líneas simultáneamente, solo se reconoce 1
+**Líneas afectadas**: `tetris_engine.dart:_lockPiece()`, `board.dart:removeRows()`
+**Debug**: Buscar logs `[LINE]` y `[REMOVE]` en flutter logcat
 
-2. **Causas comunes**:
-   - Error en `SharedPreferences` (dispositivo sin almacenamiento o permisos)
-   - Error en `Ticker.start()` si el `SchedulerBinding` no está listo
-   - Excepción no atrapada en `_initializeGame()` (corregido con try-catch)
+### Errores conocidos
+- `INSTALL_FAILED_USER_RESTRICTED`: usar `adb install -r` en vez de `flutter install`
+- `ssh: connect timed out`: host remoto apagado o sin conexión
+- `403 Permission denied`: usar token de GitHub para push
 
-3. **Solución rápida**: La pantalla de error muestra el mensaje específico y permite reintentar o volver al menú.
+## Docs del Proyecto
 
-4. **Si el menú no responde al teclado**: El `FocusNode` ahora solicita foco automáticamente después de 100ms. Si aún no responde, toca la pantalla para activar el `KeyboardListener`.
-
-5. **Limpiar datos de la app**: Ir a Ajustes del dispositivo > Apps > Tetris > Borrar datos. Esto reinicia `SharedPreferences`.
-
-### El juego se ve muy oscuro
-
-El tema es intencionalmente oscuro (`scaffoldBackgroundColor: 0xFF050510`). Si no se distingue el tablero, ajustar el brillo del dispositivo o modificar `app_theme.dart` para usar un fondo más claro.
-
-## Mejoras Futuras
-
-- Ghost Piece (pieza fantasma)
-- Hold Piece (pieza guardada)
-- Rankings online (Firebase)
-- Modo multijugador (WebSocket)
-- Logros
-- Temas visuales intercambiables
-- Música de fondo
-- Más modos de juego (Ultra, Sprint, Marathon)
+- `docs/COMPILE.md` — Comandos de compilación remota (con credenciales del host)
+- `docs/LEARNINGS.md` — Git push, remote build, errores comunes, tagging
