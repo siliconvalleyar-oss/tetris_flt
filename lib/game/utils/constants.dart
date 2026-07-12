@@ -50,4 +50,6 @@ class GameConstants {
   static const String lastLevelKey = 'last_level';
   static const String soundEnabledKey = 'sound_enabled';
   static const String difficultyKey = 'selected_difficulty';
+  static const String darkModeKey = 'dark_mode';
+  static const String filledBlocksKey = 'filled_blocks';
 }

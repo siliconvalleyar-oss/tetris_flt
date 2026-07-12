@@ -17,6 +17,7 @@ class TetrisApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final settings = GameSettings();
+    settings.load();
 
     return AnimatedBuilder(
       animation: settings,

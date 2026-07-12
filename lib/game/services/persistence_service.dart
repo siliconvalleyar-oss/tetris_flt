@@ -61,4 +61,16 @@ class PersistenceService {
   Future<void> setDifficulty(Difficulty d) async {
     await _p.setString(GameConstants.difficultyKey, d.name);
   }
+
+  bool isDarkMode() => _p.getBool(GameConstants.darkModeKey) ?? false;
+
+  Future<void> setDarkMode(bool value) async {
+    await _p.setBool(GameConstants.darkModeKey, value);
+  }
+
+  bool isFilledBlocks() => _p.getBool(GameConstants.filledBlocksKey) ?? true;
+
+  Future<void> setFilledBlocks(bool value) async {
+    await _p.setBool(GameConstants.filledBlocksKey, value);
+  }
 }
