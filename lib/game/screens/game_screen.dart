@@ -301,7 +301,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   Widget _buildLandscapeLayout() {
     final s = widget.settings;
     final screenH = MediaQuery.of(context).size.height;
-    final boardW = screenH * 0.5; // 10:20 ratio → width = height/2
+    final boardW = screenH * 0.5;
+    final cellSize = screenH / 20;
 
     return Row(
       children: [
@@ -348,7 +349,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         ),
         // ─── Right panel: NEXT + HARD/PAUSE + → ───
         SizedBox(
-          width: 64,
+          width: 80,
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 4),
             child: Column(
@@ -356,6 +357,7 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
                 PiecePreviewWidget(
                   piece: _engine.nextPiece,
                   settings: s,
+                  cellSize: cellSize,
                 ),
                 const Spacer(),
                 _LandscapeActionBtn(label: 'HARD', icon: Icons.vertical_align_bottom, onPressed: _engine.hardDrop, settings: s),

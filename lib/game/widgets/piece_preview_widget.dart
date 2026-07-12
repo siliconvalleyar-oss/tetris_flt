@@ -8,17 +8,19 @@ import '../utils/tetromino_data.dart';
 class PiecePreviewWidget extends StatelessWidget {
   final Piece? piece;
   final GameSettings settings;
+  final double? cellSize;
 
   const PiecePreviewWidget({
     super.key,
     required this.piece,
     required this.settings,
+    this.cellSize,
   });
 
   @override
   Widget build(BuildContext context) {
-    const cellSize = 20.0;
-    const previewSize = 4 * cellSize;
+    final cs = cellSize ?? 20.0;
+    final previewSize = 4 * cs;
 
     return Container(
       width: previewSize + 16,
@@ -41,10 +43,10 @@ class PiecePreviewWidget extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           CustomPaint(
-            size: const Size(previewSize, previewSize),
+            size: Size(previewSize, previewSize),
             painter: _PiecePreviewPainter(
               piece: piece,
-              cellSize: cellSize,
+              cellSize: cs,
               darkMode: settings.darkMode,
               filledBlocks: settings.filledBlocks,
             ),
