@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../models/position.dart';
 import '../models/piece.dart';
 import '../utils/constants.dart';
@@ -94,9 +95,12 @@ class Board {
     final sorted = List<int>.from(rows)..sort();
     int removed = 0;
     for (final r in sorted) {
-      _grid.removeAt(r - removed);
+      final actualIdx = r - removed;
+      debugPrint('[REMOVE] removing row $r (actual=$actualIdx) grid.length=${_grid.length}');
+      _grid.removeAt(actualIdx);
       _grid.insert(0, List.filled(GameConstants.boardWidth, null));
       removed++;
     }
+    debugPrint('[REMOVE] done. removed=$removed rows');
   }
 }

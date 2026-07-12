@@ -244,7 +244,7 @@ class TetrisEngine extends ChangeNotifier {
 
     board.fixPiece(_currentPiece!);
 
-    // Detectar TODAS las líneas completas primero
+    // Detectar TODAS las líneas completas
     final detectedLines = <int>[];
     for (int r = GameConstants.boardHeight - 1; r >= 0; r--) {
       if (board.grid[r].every((cell) => cell != null)) {
@@ -252,10 +252,11 @@ class TetrisEngine extends ChangeNotifier {
       }
     }
 
+    debugPrint('[LINE] piece=${_currentPiece!.type.name} row=${_currentPiece!.row} detected=$detectedLines');
+
     if (detectedLines.isNotEmpty) {
       _startLineClear(detectedLines);
     } else {
-      // Game over solo si no se limpió nada y hay bloques en la fila 0
       if (board.isGameOver()) {
         _gameOver();
         return;
