@@ -82,7 +82,7 @@ class _GameBoardPainter extends CustomPainter {
 
   void _drawGrid(Canvas canvas) {
     final paint = Paint()
-      ..color = darkMode ? Colors.grey[900]! : Colors.grey[200]!
+      ..color = settings.borderColor
       ..strokeWidth = 0.5;
 
     for (int r = 0; r <= GameConstants.boardHeight; r++) {
@@ -131,7 +131,7 @@ class _GameBoardPainter extends CustomPainter {
   void _drawClearingFlash(Canvas canvas) {
     if (clearingLines.isEmpty) return;
 
-    final flashPaint = Paint()..color = darkMode ? Colors.white : Colors.black;
+    final flashPaint = Paint()..color = settings.foregroundColor;
 
     for (final r in clearingLines) {
       canvas.drawRect(
@@ -143,7 +143,6 @@ class _GameBoardPainter extends CustomPainter {
 
   Color _adjustColorForMode(Color color) {
     if (darkMode) return color;
-    // In light mode, darken the colors for contrast
     return HSLColor.fromColor(color).withLightness(
       (HSLColor.fromColor(color).lightness * 0.6).clamp(0.0, 1.0),
     ).toColor();

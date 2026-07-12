@@ -24,7 +24,7 @@ class TetrisApp extends StatelessWidget {
       builder: (context, _) {
         return MaterialApp(
           title: 'TETRIS',
-          theme: settings.darkMode ? AppTheme.darkTheme : AppTheme.lightTheme,
+          theme: AppTheme.forMode(settings.themeMode.index),
           home: MenuScreen(settings: settings),
           debugShowCheckedModeBanner: false,
         );

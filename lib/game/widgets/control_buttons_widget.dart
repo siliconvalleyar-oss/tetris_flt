@@ -109,7 +109,7 @@ class _ControlButtonState extends State<_ControlButton> {
   Widget build(BuildContext context) {
     final s = widget.settings;
     final bg = _pressed
-        ? (s.darkMode ? Colors.grey[700]! : Colors.grey[400]!)
+        ? s.borderColor
         : s.backgroundColor;
     final fg = _pressed ? s.backgroundColor : s.lightTextColor;
     final border = _pressed ? s.foregroundColor : s.borderColor;
@@ -171,7 +171,7 @@ class _DirectionButtonState extends State<_DirectionButton> {
   Widget build(BuildContext context) {
     final s = widget.settings;
     final bg = _pressed
-        ? (s.darkMode ? Colors.grey[700]! : Colors.grey[400]!)
+        ? s.borderColor
         : s.backgroundColor;
     final fg = _pressed ? s.backgroundColor : s.lightTextColor;
     final border = _pressed ? s.foregroundColor : s.borderColor;

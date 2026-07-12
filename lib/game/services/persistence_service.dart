@@ -1,6 +1,7 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import '../utils/constants.dart';
 import '../models/difficulty.dart';
+import '../models/theme_mode.dart';
 
 /// Servicio singleton para persistencia local via SharedPreferences.
 ///
@@ -66,6 +67,19 @@ class PersistenceService {
 
   Future<void> setDarkMode(bool value) async {
     await _p.setBool(GameConstants.darkModeKey, value);
+  }
+
+  GameThemeMode getThemeMode() {
+    final name = _p.getString(GameConstants.themeModeKey);
+    if (name == null) return GameThemeMode.light;
+    return GameThemeMode.values.firstWhere(
+      (m) => m.name == name,
+      orElse: () => GameThemeMode.light,
+    );
+  }
+
+  Future<void> setThemeMode(GameThemeMode mode) async {
+    await _p.setString(GameConstants.themeModeKey, mode.name);
   }
 
   bool isFilledBlocks() => _p.getBool(GameConstants.filledBlocksKey) ?? true;

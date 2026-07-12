@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/difficulty.dart';
 import '../models/settings.dart';
+import '../models/theme_mode.dart';
 import '../services/audio_service.dart';
 import '../services/persistence_service.dart';
 import 'game_screen.dart';
@@ -272,11 +273,7 @@ class _MenuScreenState extends State<MenuScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            _buildSettingToggle(
-              label: widget.settings.darkMode ? 'DARK' : 'LIGHT',
-              onTap: widget.settings.toggleDarkMode,
-              value: widget.settings.darkMode,
-            ),
+            _buildThemeModeSelector(),
             const SizedBox(height: 8),
             _buildSettingToggle(
               label: widget.settings.filledBlocks ? 'FILLED' : 'WIREFRAME',
@@ -342,5 +339,74 @@ class _MenuScreenState extends State<MenuScreen> {
         ),
       ),
     );
+  }
+
+  Widget _buildThemeModeSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.only(bottom: 6),
+          child: Text(
+            'THEME',
+            style: TextStyle(
+              color: widget.settings.lightTextColor,
+              fontSize: 9,
+              fontWeight: FontWeight.w500,
+              letterSpacing: 2,
+            ),
+          ),
+        ),
+        Row(
+          children: GameThemeMode.values.map((mode) {
+            final isSelected = widget.settings.themeMode == mode;
+            return Expanded(
+              child: GestureDetector(
+                onTap: () => widget.settings.setThemeMode(mode),
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? widget.settings.foregroundColor
+                        : widget.settings.backgroundColor,
+                    border: Border.all(
+                      color: widget.settings.borderColor,
+                      width: isSelected ? 2 : 1,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      _themeModeShortLabel(mode),
+                      style: TextStyle(
+                        color: isSelected
+                            ? widget.settings.backgroundColor
+                            : widget.settings.lightTextColor,
+                        fontSize: 8,
+                        fontWeight: FontWeight.w500,
+                        letterSpacing: 1,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  String _themeModeShortLabel(GameThemeMode mode) {
+    switch (mode) {
+      case GameThemeMode.light:
+        return 'WHITE';
+      case GameThemeMode.dark:
+        return 'BLACK';
+      case GameThemeMode.lightGray:
+        return 'GRAY+';
+      case GameThemeMode.darkGray:
+        return 'GRAY-';
+    }
   }
 }
