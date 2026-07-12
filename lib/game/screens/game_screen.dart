@@ -295,69 +295,71 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
   }
 
   Widget _buildLandscapeLayout() {
-    return Column(
+    final s = widget.settings;
+    return Row(
       children: [
-        Expanded(
-          child: Row(
-            children: [
-              SizedBox(
-                width: 80,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      _LandscapeLabel(label: 'SCORE', value: '${_engine.score}', settings: widget.settings),
-                      const SizedBox(height: 12),
-                      _LandscapeLabel(label: 'LEVEL', value: '${_engine.level}', settings: widget.settings),
-                      const SizedBox(height: 12),
-                      _LandscapeLabel(label: 'LINES', value: '${_engine.lines}', settings: widget.settings),
-                      const SizedBox(height: 12),
-                      _LandscapeLabel(label: 'BEST', value: '${_engine.highScore}', settings: widget.settings),
-                      if (_engine.combo > 1) ...[
-                        const SizedBox(height: 12),
-                        _LandscapeLabel(label: 'COMBO', value: '×${_engine.combo}', settings: widget.settings),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 4),
-                  child: GameBoardWidget(
-                    engine: _engine,
-                    settings: widget.settings,
-                  ),
-                ),
-              ),
-              SizedBox(
-                width: 80,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 6),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    children: [
-                      PiecePreviewWidget(
-                        piece: _engine.nextPiece,
-                        settings: widget.settings,
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+        // ─── Left panel: Score + ROT/DROP + ← ───
+        SizedBox(
+          width: 72,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+            child: Column(
+              children: [
+                const SizedBox(height: 4),
+                _LandscapeLabel(label: 'SCORE', value: '${_engine.score}', settings: s),
+                const SizedBox(height: 8),
+                _LandscapeLabel(label: 'LEVEL', value: '${_engine.level}', settings: s),
+                const SizedBox(height: 8),
+                _LandscapeLabel(label: 'LINES', value: '${_engine.lines}', settings: s),
+                const SizedBox(height: 8),
+                _LandscapeLabel(label: 'BEST', value: '${_engine.highScore}', settings: s),
+                if (_engine.combo > 1) ...[
+                  const SizedBox(height: 8),
+                  _LandscapeLabel(label: 'COMBO', value: '×${_engine.combo}', settings: s),
+                ],
+                const Spacer(),
+                _LandscapeActionBtn(label: 'ROT', icon: Icons.rotate_90_degrees_ccw, onPressed: _engine.rotate, settings: s),
+                const SizedBox(height: 6),
+                _LandscapeActionBtn(label: 'DROP', icon: Icons.arrow_downward, onPressed: _engine.softDrop, settings: s),
+                const SizedBox(height: 6),
+                _LandscapeDirBtn(icon: Icons.chevron_left, onPressed: _engine.moveLeft, settings: s),
+                const SizedBox(height: 4),
+              ],
+            ),
           ),
         ),
-        ControlButtonsWidget(
-          onLeft: _engine.moveLeft,
-          onRight: _engine.moveRight,
-          onRotate: _engine.rotate,
-          onSoftDrop: _engine.softDrop,
-          onHardDrop: _engine.hardDrop,
-          onPause: _engine.togglePause,
-          settings: widget.settings,
-          isLandscape: true,
+        // ─── Center: Game board ───
+        Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 2, vertical: 4),
+            child: GameBoardWidget(
+              engine: _engine,
+              settings: s,
+            ),
+          ),
+        ),
+        // ─── Right panel: NEXT + HARD/PAUSE + → ───
+        SizedBox(
+          width: 72,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+            child: Column(
+              children: [
+                const SizedBox(height: 4),
+                PiecePreviewWidget(
+                  piece: _engine.nextPiece,
+                  settings: s,
+                ),
+                const Spacer(),
+                _LandscapeActionBtn(label: 'HARD', icon: Icons.vertical_align_bottom, onPressed: _engine.hardDrop, settings: s),
+                const SizedBox(height: 6),
+                _LandscapeActionBtn(label: 'PAUSE', icon: Icons.pause, onPressed: _engine.togglePause, settings: s),
+                const SizedBox(height: 6),
+                _LandscapeDirBtn(icon: Icons.chevron_right, onPressed: _engine.moveRight, settings: s),
+                const SizedBox(height: 4),
+              ],
+            ),
+          ),
         ),
       ],
     );
@@ -669,6 +671,114 @@ class _LandscapeLabel extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+/// Landscape action button (ROT, DROP, HARD, PAUSE).
+class _LandscapeActionBtn extends StatefulWidget {
+  final String label;
+  final IconData icon;
+  final VoidCallback onPressed;
+  final GameSettings settings;
+
+  const _LandscapeActionBtn({
+    required this.label,
+    required this.icon,
+    required this.onPressed,
+    required this.settings,
+  });
+
+  @override
+  State<_LandscapeActionBtn> createState() => _LandscapeActionBtnState();
+}
+
+class _LandscapeActionBtnState extends State<_LandscapeActionBtn> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.settings;
+    final bg = _pressed ? s.borderColor : s.backgroundColor;
+    final fg = _pressed ? s.backgroundColor : s.lightTextColor;
+    final border = _pressed ? s.foregroundColor : s.borderColor;
+
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        widget.onPressed();
+      },
+      onTapCancel: () => setState(() => _pressed = false),
+      child: Container(
+        width: 64,
+        height: 44,
+        decoration: BoxDecoration(
+          color: bg,
+          border: Border.all(color: border, width: _pressed ? 2 : 1),
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(widget.icon, color: fg, size: 16),
+            Text(
+              widget.label,
+              style: TextStyle(
+                color: fg,
+                fontSize: 7,
+                fontWeight: FontWeight.w500,
+                letterSpacing: 1,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Landscape direction button (← →).
+class _LandscapeDirBtn extends StatefulWidget {
+  final IconData icon;
+  final VoidCallback onPressed;
+  final GameSettings settings;
+
+  const _LandscapeDirBtn({
+    required this.icon,
+    required this.onPressed,
+    required this.settings,
+  });
+
+  @override
+  State<_LandscapeDirBtn> createState() => _LandscapeDirBtnState();
+}
+
+class _LandscapeDirBtnState extends State<_LandscapeDirBtn> {
+  bool _pressed = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final s = widget.settings;
+    final bg = _pressed ? s.borderColor : s.backgroundColor;
+    final fg = _pressed ? s.backgroundColor : s.lightTextColor;
+    final border = _pressed ? s.foregroundColor : s.borderColor;
+
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _pressed = true),
+      onTapUp: (_) {
+        setState(() => _pressed = false);
+        widget.onPressed();
+      },
+      onTapCancel: () => setState(() => _pressed = false),
+      child: Container(
+        width: 64,
+        height: 44,
+        decoration: BoxDecoration(
+          color: bg,
+          border: Border.all(color: border, width: _pressed ? 2 : 1),
+        ),
+        child: Icon(widget.icon, color: fg, size: 22),
+      ),
     );
   }
 }
