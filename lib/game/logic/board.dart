@@ -88,19 +88,19 @@ class Board {
     return false;
   }
 
-  /// Elimina las filas en [rows] (debe estar ordenado ascendentemente).
+  /// Elimina las filas en [rows].
   ///
-  /// Cada fila removida se reemplaza por una fila vacía al tope.
+  /// Primero elimina todas las filas completas de abajo hacia arriba
+  /// (para preservar los índices), luego inserta filas vacías arriba.
   void removeRows(List<int> rows) {
-    final sorted = List<int>.from(rows)..sort();
-    int removed = 0;
+    final sorted = List<int>.from(rows)..sort((a, b) => b.compareTo(a));
     for (final r in sorted) {
-      final actualIdx = r - removed;
-      debugPrint('[REMOVE] removing row $r (actual=$actualIdx) grid.length=${_grid.length}');
-      _grid.removeAt(actualIdx);
-      _grid.insert(0, List.filled(GameConstants.boardWidth, null));
-      removed++;
+      debugPrint('[REMOVE] removing row $r grid.length=${_grid.length}');
+      _grid.removeAt(r);
     }
-    debugPrint('[REMOVE] done. removed=$removed rows');
+    for (int i = 0; i < rows.length; i++) {
+      _grid.insert(0, List.filled(GameConstants.boardWidth, null));
+    }
+    debugPrint('[REMOVE] done. removed=${rows.length} rows');
   }
 }
