@@ -125,6 +125,8 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
     } else {
       SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
     }
+    // Update system bar colors to match current theme
+    _updateSystemUIOverlayStyle();
     return AnimatedBuilder(
       animation: widget.settings,
       builder: (context, _) {
@@ -138,6 +140,19 @@ class _GameScreenState extends State<GameScreen> with TickerProviderStateMixin {
         );
       },
     );
+  }
+
+  void _updateSystemUIOverlayStyle() {
+    final isDark = widget.settings.darkMode;
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      systemNavigationBarColor: widget.settings.backgroundColor,
+      systemNavigationBarDividerColor: widget.settings.backgroundColor,
+      systemNavigationBarIconBrightness:
+          isDark ? Brightness.light : Brightness.dark,
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness:
+          isDark ? Brightness.light : Brightness.dark,
+    ));
   }
 
   Widget _buildBody() {

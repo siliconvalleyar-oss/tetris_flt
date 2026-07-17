@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../models/difficulty.dart';
 import '../models/settings.dart';
 import '../models/theme_mode.dart';
@@ -45,6 +46,7 @@ class _MenuScreenState extends State<MenuScreen> {
     return AnimatedBuilder(
       animation: widget.settings,
       builder: (context, _) {
+        _updateSystemUIOverlayStyle();
         return Scaffold(
           backgroundColor: widget.settings.backgroundColor,
           body: SafeArea(
@@ -100,13 +102,16 @@ class _MenuScreenState extends State<MenuScreen> {
   Widget _buildTitle() {
     return Column(
       children: [
-        Text(
-          'TETRIS',
-          style: TextStyle(
-            fontSize: 64,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 16,
-            color: widget.settings.foregroundColor,
+        FittedBox(
+          fit: BoxFit.scaleDown,
+          child: Text(
+            'TETRIS',
+            style: TextStyle(
+              fontSize: 64,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 16,
+              color: widget.settings.foregroundColor,
+            ),
           ),
         ),
         const SizedBox(height: 12),
@@ -395,6 +400,19 @@ class _MenuScreenState extends State<MenuScreen> {
         ),
       ],
     );
+  }
+
+  void _updateSystemUIOverlayStyle() {
+    final isDark = widget.settings.darkMode;
+    SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+      systemNavigationBarColor: widget.settings.backgroundColor,
+      systemNavigationBarDividerColor: widget.settings.backgroundColor,
+      systemNavigationBarIconBrightness:
+          isDark ? Brightness.light : Brightness.dark,
+      statusBarColor: Colors.transparent,
+      statusBarIconBrightness:
+          isDark ? Brightness.light : Brightness.dark,
+    ));
   }
 
   String _themeModeShortLabel(GameThemeMode mode) {
